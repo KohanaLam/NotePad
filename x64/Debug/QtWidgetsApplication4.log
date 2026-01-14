@@ -1,0 +1,4 @@
+﻿   Qt/MSBuild: 3.4.1.0
+   Qt: 5.15.2
+  main.cpp
+  QtWidgetsApplication4.vcxproj -> D:\visual studio project\QtWidgetsApplication5\x64\Debug\QtWidgetsApplication4.exe

@@ -1,0 +1,12 @@
+# Qt编译/配置文件
+build/
+*.pro.user
+Makefile
+*.o
+*.obj
+moc_*
+ui_*
+qrc_*
+# 可执行文件
+*.exe
+*.dll
