@@ -38,7 +38,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>5.15.2_msvc2019_64</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets;concurrent</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -98,6 +98,9 @@
     <QtMoc Include="NotePad.h" />
     <ClCompile Include="NotePad.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -1,11 +1,10 @@
 #include "NotePad.h"
-#include <QtWidgets/QApplication>
+#include <QApplication>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    QApplication app(argc, argv);
-    NotePad window;
-    window.resize(600,400);
-    window.show();
-    return app.exec();
+	QApplication app(argc, argv);
+	NotePad window;
+	window.show();
+	return app.exec();
 }

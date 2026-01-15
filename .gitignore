@@ -1,12 +1,26 @@
-# Qt编译/配置文件
-build/
+# Visual Studio 本地文件
+.vs/
+*.vcxproj.user
+*.suo
+*.sdf
+*.opensdf
+*.log
+
+# Qt 本地配置/编译文件
 *.pro.user
 Makefile
-*.o
-*.obj
 moc_*
 ui_*
 qrc_*
+*.o
+*.obj
+
+# 编译产物目录
+Debug/
+Release/
+x64/
+build/
+
 # 可执行文件
 *.exe
 *.dll
