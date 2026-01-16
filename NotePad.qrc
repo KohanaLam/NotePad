@@ -1,4 +1,6 @@
 <RCC>
-    <qresource prefix="NotePad">
+    <qresource prefix="/NotePad"/>
+    <qresource prefix="/">
+        <file>style.qss</file>
     </qresource>
 </RCC>

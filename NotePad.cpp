@@ -21,6 +21,8 @@ NotePad::NotePad(QWidget* parent) // done
 	// 设置字体稍微大一点
 	textEdit->setFont(QFont("Consolas", 12));
 
+	textEdit->setObjectName("textEdit");
+
 	layout->addWidget(textEdit);
 
 	QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -30,29 +32,9 @@ NotePad::NotePad(QWidget* parent) // done
 
 	clearButton = new QPushButton("Clear", this);
 	clearButton->setFixedSize(60, 35); // 固定大小，使其不变化
-	clearButton->setStyleSheet(
-		// 1. 正常状态：浅粉色
-		"QPushButton {"
-		"  background-color: #FFB6C1;"  // LightPink (浅粉色)
-		"  color: white;"               // 白色文字
-		"  border-radius: 8px;"        // 圆角大一点更可爱
-		"  font-family: 'Microsoft YaHei';"
-		"  font-size: 16px;"
-		"  font-weight: bold;"
-		"}"
+	// 必须加，否则QSS里#clearButton识别不到
+	clearButton->setObjectName("clearButton");
 
-		// 2. 鼠标悬停状态：颜色稍微加深
-		"QPushButton:hover {"
-		"  background-color: #FF69B4;"  // HotPink (热粉色)
-		"}"
-
-		// 3. 鼠标按下状态：更有点击感
-		"QPushButton:pressed {"
-		"  background-color: #C71585;"  // MediumVioletRed (深紫罗兰红)
-		"  padding-left: 5px;"          // 点击时文字位移，模拟按下效果
-		"  padding-top: 5px;"
-		"}"
-	);
 	buttonLayout->addWidget(clearButton);
 	layout->addLayout(buttonLayout);
 
@@ -69,6 +51,10 @@ NotePad::NotePad(QWidget* parent) // done
 	// 3. 连接并发监视器的信号
 	// 当后台线程读完文件，watcher 会发出 finished 信号，我们连接到 onFileLoaded 更新 UI
 	connect(&fileLoaderWatcher, &QFutureWatcher<QString>::finished, this, &NotePad::OnFileLoaded);
+	connect(&fileSaverWatcher, &QFutureWatcher<bool>::finished, this, &NotePad::OnFileSaved);
+
+	// 统计字数信号
+	connect(textEdit, &QTextEdit::textChanged, this, &NotePad::UpdateStatusBar);
 }
 
 NotePad::~NotePad() {}
@@ -151,6 +137,15 @@ void NotePad::CreateToolBars() //done
 void NotePad::CreateStatusBar() //done
 {
 	statusBar()->showMessage("Ready");
+
+	// 创建一个标签，显示在状态栏右侧
+	statusLabel = new QLabel("Lines: 1 | Length: 0", this);
+	// 设置一点左右边距，看起来不拥挤
+	statusLabel->setStyleSheet("padding: 0 10px;");
+
+	// addPermanentWidget 会让它一直停靠在最右侧，不会被 showMessage 覆盖
+	statusBar()->addPermanentWidget(statusLabel);
+
 
 	//progressBar = new QProgressBar(this);
 	//progressBar->setMaximumHeight(15); // 让它瘦一点
@@ -236,18 +231,30 @@ void NotePad::SaveAs() //done
 
 void NotePad::SaveFile(const QString& fileName) // done
 {
-	QFile file(fileName);
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-		QMessageBox::critical(this, "Error", "Cannot write file: " + file.errorString());
-		return;
-	}
-	QTextStream out(&file);
-	out << textEdit->toPlainText();
-	file.close();
+	// 1. 【主线程工作】
+	// 必须在主线程获取文本内容！绝对不能在 QtConcurrent::run 里调用 UI 组件
+	QString content = textEdit->toPlainText();
 
-	currentFile = fileName;
-	setWindowTitle(currentFile + " - Super NotePad");
-	statusBar()->showMessage("File Saved", 2000);
+	statusBar()->showMessage("Saving file in background...");
+	textEdit->setEnabled(false); // 保存期间禁止编辑，防止数据冲突
+
+	// 2. 【后台线程工作】
+	// 启动异步任务，把 fileName 和 content 传进去
+	// 返回值是 bool (表示是否成功)
+	QFuture<bool> future = QtConcurrent::run([fileName, content]() -> bool {
+		QFile file(fileName);
+		if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+			return false; // 打开失败
+		}
+		QTextStream out(&file);
+		out << content;
+		file.close();
+		return true; // 保存成功
+		});
+
+	// 3. 交给 Watcher 监控
+	currentFile = fileName; // 更新当前文件名
+	fileSaverWatcher.setFuture(future);
 }
 
 void NotePad::SelectFont()
@@ -347,5 +354,35 @@ void NotePad::FindNext()
 		if (!found) {
 			QMessageBox::information(this, "Find", "Cannot find \"" + term + "\"");
 		}
+	}
+}
+
+void NotePad::UpdateStatusBar()
+{
+	int length = textEdit->document()->characterCount() - 1; // 包含结尾的终止符，所以要-1
+	if (length < 0) length = 0;
+	// 简单的行数统计 (通过换行符)
+	int lines = textEdit->document()->blockCount();
+
+	statusLabel->setText(QString("Lines: %1 | Length: %2").arg(lines).arg(length));
+}
+
+void NotePad::OnFileSaved()
+{
+	// 获取结果
+	bool success = fileSaverWatcher.result();
+
+	textEdit->setEnabled(true); // 恢复编辑
+
+	if (success) {
+		setWindowTitle(QFileInfo(currentFile).fileName() + " - Super NotePad");
+		statusBar()->showMessage("File Saved Successfully", 2000);
+
+		// 记得加上之前说的清除修改标记
+		setWindowModified(false);
+	}
+	else {
+		QMessageBox::critical(this, "Error", "Failed to save file!");
+		statusBar()->showMessage("Save Failed", 2000);
 	}
 }
