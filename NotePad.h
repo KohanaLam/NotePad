@@ -37,7 +37,11 @@ private slots:
 	void ClearAll();
 
 	// QtConcurrent 回调槽函数
-	void OnFileLoaded();
+	void OnFileLoaded(); // 多线程加载
+	void OnFileSaved(); // 多线程保存
+
+	// 统计字数
+	void UpdateStatusBar();
 
 private:
 	// UI 创建辅助函数
@@ -56,6 +60,7 @@ private:
 	QTextEdit* textEdit;
 	QString currentFile; // 记录当前打开的文件路径
 	QPushButton* clearButton; // 一键清空按钮
+	QLabel* statusLabel; // 显示字数的标签
 	// 查找对话框的指针
 	QDialog* findDialog = nullptr;
 	QLineEdit* findLineEdit = nullptr;
@@ -78,4 +83,5 @@ private:
 	// 并发相关
 	// QFutureWatcher 用于监听 QtConcurrent::run 的执行状态
 	QFutureWatcher<QString> fileLoaderWatcher;
+	QFutureWatcher<bool> fileSaverWatcher;
 };

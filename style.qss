@@ -1,0 +1,35 @@
+/* ================== style.qss ================== */
+
+/* 1. 全局文本编辑器样式 */
+QTextEdit#textEdit {
+    background-color: black;
+    color: white;
+    /* 建议：可以加上光标颜色，否则黑色背景下光标可能看不清 */
+    selection-background-color: #404040; 
+}
+
+/* 2. 仅针对名为 clearButton 的按钮样式 */
+/* 使用 # 号表示 ID 选择器 */
+QPushButton#clearButton {
+    background-color: #FFB6C1;  /* LightPink */
+    color: white;
+    border-radius: 8px;
+    font-family: 'Microsoft YaHei';
+    font-size: 16px;
+    font-weight: bold;
+    /* 建议：加上最小宽度，防止字少的时候按钮太窄 */
+    min-width: 80px; 
+}
+
+/* 悬停状态 */
+QPushButton#clearButton:hover {
+    background-color: #FF69B4;  /* HotPink */
+}
+
+/* 按下状态 */
+QPushButton#clearButton:pressed {
+    background-color: #C71585;  /* MediumVioletRed */
+    /* 模拟按压位移效果 */
+    padding-left: 5px;
+    padding-top: 5px;
+}

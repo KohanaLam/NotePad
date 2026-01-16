@@ -43,5 +43,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="style.qss">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
